@@ -11,22 +11,35 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class ProductImageSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
+
     class Meta:
         model = ProductImage
         fields = ["id", "image", "is_feature"]
+
     def get_image(self, obj):
         if obj.image_url:
             return obj.image_url
         if obj.image:
-            return f"http://127.0.0.1:8000{obj.image.url}"
+            # Use the incoming request to build the correct absolute URL
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            # Fallback for production
+            return f"https://machine-pk-sealing-platform.onrender.com{obj.image.url}"
         return None
 
 class ProductSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
-    images = ProductImageSerializer(many=True, read_only=True)
+    images = serializers.SerializerMethodField()
+
     class Meta:
         model = Product
-        fields = ["id", "name", "slug", "category", "short_description", "description", "price", "stock", "image_url", "tags", "specs", "features", "images"]
+        fields = ["id", "name", "slug", "category", "short_description", "description",
+                  "price", "stock", "image_url", "tags", "specs", "features", "images"]
+
+    def get_images(self, obj):
+        # Pass context down so build_absolute_uri works
+        return ProductImageSerializer(obj.images.all(), many=True, context=self.context).data
 
 class OrderItemInputSerializer(serializers.Serializer):
     product_id = serializers.IntegerField()
@@ -38,6 +51,7 @@ class OrderCreateSerializer(serializers.Serializer):
     customer_phone = serializers.CharField(max_length=32, allow_blank=True)
     shipping_address = serializers.CharField(allow_blank=True)
     items = OrderItemInputSerializer(many=True)
+
     def create(self, validated_data):
         user = self.context['request'].user
         ref = f"AECO-{uuid4().hex[:8].upper()}"
@@ -52,7 +66,9 @@ class OrderCreateSerializer(serializers.Serializer):
         total = Decimal("0")
         for item in validated_data["items"]:
             p = Product.objects.get(pk=item["product_id"])
-            oi = OrderItem.objects.create(order=order, product=p, quantity=item["quantity"], unit_price=p.price)
+            oi = OrderItem.objects.create(
+                order=order, product=p, quantity=item["quantity"], unit_price=p.price
+            )
             total += oi.line_total()
         order.total = total
         order.save()
@@ -60,24 +76,42 @@ class OrderCreateSerializer(serializers.Serializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     items = serializers.SerializerMethodField()
+
     class Meta:
         model = Order
         fields = ["id", "reference", "customer_name", "customer_email", "status", "total", "created_at", "items"]
+
     def get_items(self, obj):
-        return [{"product_id": i.product_id, "product_name": i.product.name, "quantity": i.quantity, "unit_price": str(i.unit_price), "line_total": str(i.line_total())} for i in obj.items.all()]
+        return [
+            {
+                "product_id": i.product_id,
+                "product_name": i.product.name,
+                "quantity": i.quantity,
+                "unit_price": str(i.unit_price),
+                "line_total": str(i.line_total()),
+            }
+            for i in obj.items.all()
+        ]
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
     email = serializers.EmailField(required=True)
+
     class Meta:
         model = User
         fields = ["username", "email", "password"]
+
     def validate_email(self, value):
         if User.objects.filter(email__iexact=value).exists():
             raise serializers.ValidationError("An account with this email already exists.")
         return value
+
     def create(self, validated_data):
-        return User.objects.create_user(username=validated_data["username"], email=validated_data["email"], password=validated_data["password"])
+        return User.objects.create_user(
+            username=validated_data["username"],
+            email=validated_data["email"],
+            password=validated_data["password"]
+        )
 
 class QuoteRequestSerializer(serializers.ModelSerializer):
     class Meta:
