@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
+#!/usr/bin/env bash
 set -o errexit
 
 pip install -r requirements.txt
 python manage.py collectstatic --no-input
 python manage.py migrate
-
-# Create superuser automatically from environment variables
 python manage.py create_superuser
