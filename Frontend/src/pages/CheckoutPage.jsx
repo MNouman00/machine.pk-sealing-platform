@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function CheckoutPage() {
   const { items, totalPrice, clear } = useCart();
-  const { user } = useAuth(); // <-- 1. Extract the logged-in user
+  const { user } = useAuth();
   const navigate = useNavigate();
   
   const [form, setForm] = useState({
@@ -19,14 +19,12 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  // 2. Auto-fill the name when the page loads
   useEffect(() => {
     if (user) {
       setForm(f => ({ ...f, customer_name: user.username }));
     }
   }, [user]);
 
-  // 3. Protect the route: If not logged in, show a message
   if (!user) {
     return (
       <div className="min-h-screen pt-24 pb-16 bg-gray-50 flex flex-col items-center justify-center">
@@ -59,7 +57,6 @@ export default function CheckoutPage() {
         ...form,
         items: items.map((i) => ({ product_id: i.productId, quantity: i.quantity })),
       };
-      // The AuthContext automatically attaches the token to this request
       const order = await createOrder(payload);
       clear();
       navigate(`/order-success/${order.reference}`, { state: { order } });
@@ -111,14 +108,14 @@ export default function CheckoutPage() {
               {items.map((i) => (
                 <li key={i.productId} className="flex items-center gap-3 text-sm">
                   <img 
-                          src={
-                                 i.imageUrl 
-                                      ? (i.imageUrl.startsWith('http') ? i.imageUrl : `http://127.0.0.1:8000${i.imageUrl}`) 
-                                    : 'https://picsum.photos/seed/aeco/60/60'
-                                       } 
-                                   alt={i.name} 
-                                       className="w-12 h-12 rounded bg-gray-50 object-contain p-1" 
-                                    />
+                    src={
+                      i.imageUrl 
+                        ? (i.imageUrl.startsWith('http') ? i.imageUrl : `https://machine-pk-sealing-platform.onrender.com${i.imageUrl}`) 
+                        : 'https://picsum.photos/seed/aeco/60/60'
+                    } 
+                    alt={i.name} 
+                    className="w-12 h-12 rounded bg-gray-50 object-contain p-1" 
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="truncate text-gray-900">{i.name}</p>
                     <p className="text-xs text-gray-500">×{i.quantity}</p>

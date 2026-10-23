@@ -42,7 +42,7 @@ export default function HomePage() {
     if (!featured) return 'https://picsum.photos/seed/aeco/800/800';
     if (featured.images && featured.images.length > 0) {
       const img = featured.images.find(i => i.is_feature)?.image || featured.images[0].image;
-      return img.startsWith('http') ? img : `http://127.0.0.1:8000${img}`;
+      return img.startsWith('http') ? img : `https://machine-pk-sealing-platform.onrender.com${img}`;
     }
     return featured.image_url || 'https://picsum.photos/seed/aeco/800/800';
   };

@@ -21,7 +21,7 @@ export default function ProductCard({ product }) {
     }
     
     if (img && !img.startsWith('http')) {
-      img = `http://127.0.0.1:8000${img}`;
+      img = `https://machine-pk-sealing-platform.onrender.com${img}`;
     }
     return img;
   });

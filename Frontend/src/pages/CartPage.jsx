@@ -30,16 +30,16 @@ export default function CartPage() {
           <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 divide-y divide-gray-100">
             {items.map((item) => (
               <div key={item.productId} className="p-4 sm:p-5 flex items-start gap-4">
-               <img
-  src={
-    item.imageUrl 
-      ? (item.imageUrl.startsWith('http') ? item.imageUrl : `http://127.0.0.1:8000${item.imageUrl}`) 
-      : 'https://picsum.photos/seed/aeco/120/120'
-  }
-  alt={item.name}
-  className="w-20 h-20 object-contain bg-gray-50 rounded-lg p-2 flex-shrink-0"
-  onError={(e) => { e.target.src = 'https://picsum.photos/seed/aeco/120/120'; }}
-/>
+                <img
+                  src={
+                    item.imageUrl 
+                      ? (item.imageUrl.startsWith('http') ? item.imageUrl : `https://machine-pk-sealing-platform.onrender.com${item.imageUrl}`) 
+                      : 'https://picsum.photos/seed/aeco/120/120'
+                  }
+                  alt={item.name}
+                  className="w-20 h-20 object-contain bg-gray-50 rounded-lg p-2 flex-shrink-0"
+                  onError={(e) => { e.target.src = 'https://picsum.photos/seed/aeco/120/120'; }}
+                />
                 <div className="flex-1 min-w-0">
                   <Link to={`/products/${item.slug}`} className="font-medium text-gray-900 hover:text-blue-700 truncate block">{item.name}</Link>
                   <p className="text-sm text-gray-500 mt-0.5">${item.price.toFixed(2)} each</p>

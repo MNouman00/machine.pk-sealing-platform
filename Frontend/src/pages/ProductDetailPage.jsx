@@ -6,7 +6,6 @@ import { fetchProduct } from '../lib/api';
 import { useCart } from '../context/CartContext';
 import Loading from '../components/Loading';
 
-
 export default function ProductDetailPage() {
   const { slug } = useParams();
   const { addItem } = useCart();
@@ -25,17 +24,18 @@ export default function ProductDetailPage() {
       .catch(() => setError('Product not found'))
       .finally(() => setLoading(false));
   }, [slug]);
-const addToCart = () => {
+
+  const addToCart = () => {
     if (!product) return;
     addItem(product, qty);
     setAdded(true);
     
-    // Change the button text to "Added!" for 800ms, THEN redirect
     setTimeout(() => {
       setAdded(false);
       navigate('/cart');
     }, 800);
   };
+
   if (loading) return <div className="pt-24"><Loading /></div>;
   if (error || !product) return (
     <div className="pt-24 text-center py-20">
@@ -44,14 +44,14 @@ const addToCart = () => {
     </div>
   );
 
-  // 1. Helper function to ensure image URLs point to the Django backend
-   const getFullImageUrl = (url) => {
+  // FIXED: Use production Render URL instead of localhost
+  const getFullImageUrl = (url) => {
     if (!url) return 'https://picsum.photos/seed/aeco/800/800';
-    if (url.startsWith('http')) return url; // If it's a URL, return it as is
-    return `http://127.0.0.1:8000${url}`;   // If it's a local file, add backend URL
+    if (url.startsWith('http')) return url;
+    return `https://machine-pk-sealing-platform.onrender.com${url}`;
   };
 
-  // 2. Build the gallery array
+  // Build the gallery array
   const galleryImages = [];
   if (product.images && product.images.length > 0) {
     const featureImage = product.images.find(img => img.is_feature);
@@ -80,14 +80,13 @@ const addToCart = () => {
           {/* Image Gallery */}
           <div>
             <div className="bg-gray-50 rounded-3xl overflow-hidden aspect-square relative group">
-             <img
-                 src={getFullImageUrl(galleryImages[activeImageIndex])}
+              <img
+                src={getFullImageUrl(galleryImages[activeImageIndex])}
                 alt={product.name}
-                 className="w-full h-full object-contain p-8"
-                  onError={(e) => { 
-                   // If image fails to load, show a placeholder
-                     e.target.src = 'https://picsum.photos/seed/aeco/800/800'; 
-                  }}
+                className="w-full h-full object-contain p-8"
+                onError={(e) => { 
+                  e.target.src = 'https://picsum.photos/seed/aeco/800/800'; 
+                }}
               />
               
               {galleryImages.length > 1 && (
