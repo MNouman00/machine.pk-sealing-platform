@@ -83,14 +83,14 @@ export default function AIChatWidget() {
         content: m.content
       }));
 
-      const response = await fetch('http://localhost:8000/api/chat/stream', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          ...(user && { 'Authorization': `Token ${localStorage.getItem('aeco_token')}` })
-        },
-        body: JSON.stringify({ message: userMsg, history })
-      });
+      const response = await fetch('https://machine-pk-sealing-platform.onrender.com/api/chat/stream', {
+                     method: 'POST',
+                        headers: { 
+                                  'Content-Type': 'application/json',
+                               ...(user && { 'Authorization': `Token ${localStorage.getItem('aeco_token')}` })
+                                                },
+                                       body: JSON.stringify({ message: userMsg, history })
+                                  });
 
       if (!response.ok) throw new Error('Network response was not ok');
 
