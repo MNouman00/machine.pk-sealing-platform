@@ -3,11 +3,13 @@ import axios from 'axios';
 
 const AuthContext = createContext(null);
 
+// Use the Render URL, with a fallback to localhost for local testing
+const API_BASE = import.meta.env.VITE_API_URL || 'https://machine-pk-sealing-platform.onrender.com/api';
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('aeco_token'));
 
-  // THIS IS CRITICAL: Attach the token to all Axios requests
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Token ${token}`;
@@ -17,14 +19,14 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   const login = async (username, password) => {
-    const res = await axios.post('http://localhost:8000/api/auth/login/', { username, password });
+    const res = await axios.post(`${API_BASE}/auth/login/`, { username, password });
     setToken(res.data.token);
     localStorage.setItem('aeco_token', res.data.token);
-    setUser({ username, email: res.data.email || '' }); 
+    setUser({ username, email: res.data.email || '' });
   };
 
   const register = async (username, email, password) => {
-    await axios.post('http://localhost:8000/api/auth/users/', { username, email, password });
+    await axios.post(`${API_BASE}/auth/users/`, { username, email, password });
     await login(username, password);
   };
 
