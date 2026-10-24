@@ -1,29 +1,26 @@
 from django.conf import settings
 from langchain_core.messages import SystemMessage
-from langchain_groq import ChatGroq  # <-- Changed import
+from langchain_groq import ChatGroq
 from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 from typing import Annotated, TypedDict, Optional
-from .tools import search_products, get_product_details, create_order, ALL_TOOLS
+from .tools import ALL_TOOLS
 
 class AgentState(TypedDict):
     messages: Annotated[list, add_messages]
     user: Optional[object]
 
-SYSTEM_PROMPT = """You are MACHINES.PK Assistant.
+SYSTEM_PROMPT = """You are AECO Assistant.
 You help customers find sealing machines and place orders.
+Use `search_products` to find items. Use `get_product_details` to show specs.
+Use `create_order` ONLY after confirming the customer's name, email, and items.
 
-IMPORTANT INSTRUCTIONS:
-1. If the user says hello, asks how you are, or makes small talk, reply directly. DO NOT use any tools.
-2. ONLY use `search_products` if they ask about machines, prices, or stock.
-3. ONLY use `create_order` after confirming the customer's name, email, and items.
-4. Be brief and helpful."""
+IMPORTANT: If a logged-in user is present, you MUST pass their user_id when calling create_order."""
 
 def build_graph():
-    # Use Groq's ultra-fast Llama 3.3 70B model
     llm = ChatGroq(
-         model="openai/gpt-oss-120b", # <-- Fast & powerful
+        model="llama-3.3-70b-versatile",
         api_key=settings.GROQ_API_KEY,
         temperature=0.3,
         streaming=True
@@ -35,8 +32,8 @@ def build_graph():
         user = state.get("user")
         system_prompt = SYSTEM_PROMPT
         if user:
-            system_prompt += f"\n\nCurrent logged-in user: {user.username} (ID: {user.id})."
-
+            system_prompt += f"\n\nCurrent logged-in user: {user.username} (user_id={user.id}). Pass this user_id to create_order."
+        
         msgs = [SystemMessage(content=system_prompt)] + state["messages"]
         response = llm.invoke(msgs)
         return {"messages": [response]}

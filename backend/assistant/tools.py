@@ -31,6 +31,10 @@ def get_product_details(product_id: int) -> dict:
 @tool
 def create_order(customer_name: str, customer_email: str, items: list[dict], user_id: int = None) -> dict:
     """Create an order. 'items' must be a list like: [{'product_id': 1, 'quantity': 2}]"""
+    from django.contrib.auth.models import User
+    from decimal import Decimal
+    from uuid import uuid4
+    from catalog.models import Product, Order, OrderItem
     
     user = None
     if user_id:
@@ -38,12 +42,12 @@ def create_order(customer_name: str, customer_email: str, items: list[dict], use
             user = User.objects.get(id=user_id)
         except User.DoesNotExist:
             pass
-            
+    
     order = Order.objects.create(
         user=user,
-        reference=f"MACHINES.PK-{uuid4().hex[:8].upper()}",
-        customer_name=customer_name, 
-        customer_email=customer_email, 
+        reference=f"AECO-{uuid4().hex[:8].upper()}",
+        customer_name=customer_name,
+        customer_email=customer_email,
         status="pending"
     )
     

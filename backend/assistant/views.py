@@ -3,8 +3,8 @@ from django.http import StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from langchain_core.messages import HumanMessage, AIMessage
+from rest_framework.authtoken.models import Token
 from .graph import get_graph
-from rest_framework.authtoken.models import Token # <-- Import Token
 
 def _sse(event: str, data: dict) -> str:
     return f"event: {event}\ndata: {json.dumps(data)}\n\n"
@@ -19,7 +19,7 @@ def chat_stream(request):
     except json.JSONDecodeError:
         return StreamingHttpResponse(iter([_sse("error", {"error": "Invalid JSON"})]), content_type="text/event-stream")
 
-    # Get the user from the token if provided
+    # Read user from token
     user = None
     auth_header = request.headers.get('Authorization')
     if auth_header and auth_header.startswith('Token '):
@@ -64,7 +64,8 @@ def chat_stream(request):
             yield _sse("done", {})
         except Exception as e:
             yield _sse("token", {"text": f"\n\n**Error:** {str(e)}"})
-            yield _sse("done", {}) # <-- This ensures the "Thinking..." spinner stops even on error!
+            yield _sse("done", {})
+
     resp = StreamingHttpResponse(event_stream(), content_type="text/event-stream")
     resp["Cache-Control"] = "no-cache"
     return resp
