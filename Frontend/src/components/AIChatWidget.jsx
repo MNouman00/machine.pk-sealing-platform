@@ -87,7 +87,9 @@ export default function AIChatWidget() {
                      method: 'POST',
                         headers: { 
                                   'Content-Type': 'application/json',
-                               ...(user && { 'Authorization': `Token ${localStorage.getItem('aeco_token')}` })
+                               ...(user && localStorage.getItem('aeco_token') && { 
+  'Authorization': `Token ${localStorage.getItem('aeco_token')}` 
+})
                                                 },
                                        body: JSON.stringify({ message: userMsg, history })
                                   });
