@@ -20,12 +20,12 @@ IMPORTANT: If a logged-in user is present, you MUST pass their user_id when call
 
 def build_graph():
     llm = ChatGroq(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         api_key=settings.GROQ_API_KEY,
         temperature=0.3,
-        streaming=True
+        streaming=True,
+        max_tokens=800  # <-- Add this
     ).bind_tools(ALL_TOOLS)
-    
     tool_node = ToolNode(ALL_TOOLS)
 
     def call_model(state: AgentState):
