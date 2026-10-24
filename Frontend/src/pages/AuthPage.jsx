@@ -23,11 +23,10 @@ export default function AuthPage() {
         await register(form.username, form.email, form.password);
       }
       navigate('/');
-    } catch (err) {
-      // Check if Django sent a detailed error object
+      } catch (err) {
+      // Show the exact error Django returned
       if (err.response && err.response.data) {
         const data = err.response.data;
-        // Convert the error object into a readable string
         const messages = Object.entries(data)
           .map(([field, msgs]) => {
             const msg = Array.isArray(msgs) ? msgs.join(', ') : msgs;
@@ -35,6 +34,8 @@ export default function AuthPage() {
           })
           .join(' | ');
         setError(messages);
+      } else if (err.message) {
+        setError(err.message);
       } else {
         setError('Authentication failed. Check your credentials.');
       }
