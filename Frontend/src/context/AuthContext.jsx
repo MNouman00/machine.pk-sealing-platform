@@ -29,9 +29,12 @@ export function AuthProvider({ children }) {
     setUser({ username, email: res.data.email || '' });
   };
 
-  const register = async (username, email, password) => {
-    // CRITICAL: Use plain axios — NO interceptor, NO Authorization header
-    await axios.post(`${API_BASE}/auth/users/`, { username, email, password });
+    const register = async (username, email, password) => {
+    // Use plain axios — no interceptor, no stale token
+    await axios.post(`${API_BASE}/auth/users/`, 
+      { username, email, password },
+      { headers: { 'Authorization': null } } // Explicitly nullify the header
+    );
     await login(username, password);
   };
 
