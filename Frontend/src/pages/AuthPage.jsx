@@ -12,7 +12,7 @@ export default function AuthPage() {
   const navigate = useNavigate();
    const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -23,23 +23,31 @@ export default function AuthPage() {
         await register(form.username, form.email, form.password);
       }
       navigate('/');
-      } catch (err) {
-      // Show the exact error Django returned
+    } catch (err) {
+      // Extract the exact Django error message
+      let message = 'Authentication failed. Check your credentials.';
+      
       if (err.response && err.response.data) {
         const data = err.response.data;
-        const messages = Object.entries(data)
-          .map(([field, msgs]) => {
-            const msg = Array.isArray(msgs) ? msgs.join(', ') : msgs;
-            return field === 'non_field_errors' ? msg : `${field}: ${msg}`;
-          })
-          .join(' | ');
-        setError(messages);
+        // Handle different error formats from Django/Djoser
+        if (typeof data === 'string') {
+          message = data;
+        } else if (typeof data === 'object') {
+          message = Object.entries(data)
+            .map(([field, msgs]) => {
+              const msg = Array.isArray(msgs) ? msgs.join(', ') : msgs;
+              return field === 'non_field_errors' || field === 'detail' 
+                ? msg 
+                : `${field}: ${msg}`;
+            })
+            .join(' | ');
+        }
       } else if (err.message) {
-        setError(err.message);
-      } else {
-        setError('Authentication failed. Check your credentials.');
+        message = err.message;
       }
-    }finally {
+      
+      setError(message);
+    } finally {
       setLoading(false);
     }
   };
